@@ -20,3 +20,5 @@ class Config:
     ES_URL=os.getenv("ES_URL")
     ES_USER=os.getenv("ES_USER")
     ES_PASSWORD=os.getenv("ES_PASSWORD")
+    BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
+    CSV_STOCK_PATH = os.path.join(BASE_DIR, 'data', 'stock.csv')  

@@ -15,55 +15,54 @@ from extensions import checkpointer
 client_bp = Blueprint('client', __name__)
 config = Config()
 
+def get_docs():
+    docs = []
+    with open(config.CSV_STOCK_PATH, newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for r in reader:
+            text = (
+                f"Producto: {r['name']}. "
+                f"Precio: S/{r['price']}. "
+                f"Descripción: {r['description']}. "
+                f"Stock: {r['stock']} unidades."
+            )
+            docs.append(Document(page_content=text, metadata={'id': r['id']}))
+    return docs
+
 @client_bp.route('/agent', methods=['GET'])
 def client_agent():
     id_agente = request.args.get('idagente')
     msg = request.args.get('msg')
 
-    # 1. Leer CSV y preparar documentos para RAG
-    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
-    csv_path = os.path.join(base_dir, 'data', 'stock.csv')
-    docs = []
-
-    with open(csv_path, newline="", encoding="utf-8") as csv_file:
-        reader = csv.DictReader(csv_file)
-        for r in csv.DictReader(csv_file):
-            text = (f"Producto: {r['name']}. Precio: S/{r['price']}. "
-                    f"Descripción: {r['description']}. Stock: {r['stock']} unidades.")
-            docs.append(Document(page_content=text, metadata={'id': r['id']}))
-
-    # 2. Configurar ElasticsearchStore
+    # 1. Configurar ElasticsearchStore
     store = ElasticsearchStore(
         es_url=config.ES_URL,
         es_user=config.ES_USER,
         es_password=config.ES_PASSWORD,
         index_name="stock",
-        embedding=OpenAIEmbeddings(),
-        strategy=ElasticsearchStore.ExactRetrievalStrategy()
+        embedding=OpenAIEmbeddings()
     )
 
     # 3. Reindexar el CSV si este cambio
     last_mtime = getattr(store, "_last_mtime", None)
-    current_mtime = os.path.getmtime(csv_path)
+    current_mtime = os.path.getmtime(config.CSV_STOCK_PATH)
 
     if last_mtime != current_mtime:
         print("CSV fue actualizado...")
         if store.client.indices.exists(index="stock"):
             store.client.indices.delete(index="stock")
-        store.add_documents(docs)
+        store.add_documents(get_docs())
         store._last_mtime = current_mtime
 
     # 4. Preparar herramienta RAG
     retriever = store.as_retriever(search_kwargs={"k": 3})
-
-    # prueba = retriever.invoke("Algo dulce")
-    # prueba = retriever.invoke("Algo caliente")
-    # print([d.page_content for d in prueba])
-    
     tool_rag = retriever.as_tool(
         name="stock_search",
         description="Consulta de stock"
     )
+    # prueba = retriever.invoke("Algo dulce")
+    # prueba = retriever.invoke("Algo caliente")
+    # print([d.page_content for d in prueba])
 
     # 5. Inicializamos el modelo
     model = ChatOpenAI(model="gpt-4.1-2025-04-14")
@@ -72,27 +71,47 @@ def client_agent():
     tolkit = [tool_rag]
     prompt = ChatPromptTemplate.from_messages([
         ("system", """
-            Eres el amable personal de Esencia Cafeteria ☕🍰  
-            Siempre inicia con “hola, gracias por contactar con Esencia Cafeteria.”  
-            No uses “¡” ni “¿”. Para preguntas, cierra con “?”.  
-            Responde en **formato de respuesta directa y conversacional**:  
-            “Si, tenemos <producto> a <precio>, deseas delivery o lo quieres recoger en la cafeteria? 😊”  
-            Usa **stock_search** inmediatamente en cada consulta.  
-            Si no hay datos, responde “Lo siento, no cuento con esa info.”  
-            No inventes productos fuera del CSV.  
-            Solo indicas “disponible” o “agotado” (nunca cantidades).  
-            Máximo 20 palabras por respuesta.
+            Eres el amable asistente virtual de **Esencia Cafetería** ☕🍰  
+            Hablas con entusiasmo, cercanía y usando emojis. Siempre breve, claro y conversacional (máx. 20 palabras por respuesta).
 
-            Flujo de la conversación:
-            1. Saluda cálido de parte de Esencia cafeteria y pregunta en que podemos ayudarle.  
-            2. Si no sabe, sugiere 2 a 3 opciones populares con más stock.  
-            3. Usa **stock_search** y responde con nombre, descripción, precio y disponibilidad.  
-            4. Pregunta “¿Recoges en tienda o domicilio (S/4 a 7 aprox.)?”  
-            5. Resume el pedido y pregunta si desea algo más.  
-            6. Si es domicilio, pide dirección y confirma pago por Yape al 987 654 321.  
-            7. Cierra la compra con un “¡Gracias! Nos vemos pronto.”  
+            ---
 
-            Estilo: entusiasta, cercano, siempre con emojis, muy breve y conversacional.  
+            ### 🧠 Reglas generales:
+
+            - Para el primer mensaje inicia con: **“Hola, gracias por contactar con Esencia Cafetería 😊 ¿En qué podemos ayudarte hoy?”**
+            - No uses signos de apertura “¡” o “¿”.
+            - Para preguntas, cierra con “?”.
+            - Usa **stock_search** en cada mensaje relacionado a productos.
+            - Consulta el historial para detectar pedidos anteriores o datos relevantes.  
+            - Si no hay info, responde: **“Lo siento, no cuento con esa info 😕”**
+            - Nunca inventes productos fuera del CSV.
+            - Solo responde con: **“disponible”** o **“agotado”** (no menciones cantidades).
+            - Usa este formato para respuestas de productos:  
+            **“Sí, tenemos <producto> a <precio>. ¿Lo quieres para delivery o recoger en la cafetería? 😊”**
+
+            ---
+
+            ### 💬 Flujo conversacional:
+
+            1. **Saludo inicial** con calidez:  
+            “Hola, gracias por contactar con Esencia Cafetería 😊 ¿En qué podemos ayudarte hoy?”
+            2. Si el cliente no sabe qué pedir, sugiere **2 o 3 productos populares con más stock**.
+            3. Al consultar un producto, responde con:  
+            - Nombre, breve descripción, precio y disponibilidad.  
+            - Luego pregunta: **“¿Recoges en tienda o domicilio (S/4–7 aprox.)?”**
+            4. Resume el pedido y pregunta: **“¿Deseas algo más?”** 🍩☕
+            5. Si elige **delivery**, solicita dirección y confirma:  
+            **“Genial 😊 El pago es por Yape al 987 654 321.”**
+            6. Cierra con:  
+            **“¡Gracias! Pedido en camino 🚴 Nos vemos pronto 😊”**
+
+            ---
+
+            ### ✨ Estilo:
+
+            - Entusiasta y cercano.
+            - Siempre con emojis.
+            - Muy breve y conversacional.
 
         """),
         ("human", "{messages}")
@@ -107,5 +126,6 @@ def client_agent():
         pool.check()
         print("error")
 
-    print(response['messages'][-1].content)
-    return response['messages'][-1].content
+    reply = response['messages'][-1].content
+    # return response['messages'][-1].content
+    return jsonify({"reply": reply})

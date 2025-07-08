@@ -12,7 +12,7 @@
 # from langgraph.checkpoint.postgres import PostgresSaver
 # from langgraph.prebuilt import create_react_agent
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, render_template
 from flask_cors import CORS
 from config import Config
 from extensions import db, jwt, pool, test_PostgreSQL, test_Elasticsearch, test_Pool
@@ -20,7 +20,9 @@ import os
 from routes.client import client_bp
 
 def create_app():
-    app = Flask(__name__)
+    app = Flask(__name__,
+            template_folder='../frontend/templates',
+            static_folder='../frontend/static')
     app.config.from_object(Config)
 
     # 1. Configurando CORS
@@ -35,14 +37,15 @@ def create_app():
 
     @app.route('/')
     def index():
-        config = Config()
-        test_PostgreSQL()
-        test_Elasticsearch()
-        test_Pool()
-        return {'message': 'Smart Café Backend API funcionando correctamente.'}, 200
+        return render_template('home/chat.html')
 
     return app
 
 if __name__ == '__main__':
     app = create_app()
+    config = Config()
+    test_PostgreSQL()
+    test_Elasticsearch()
+    test_Pool()
     app.run(host='0.0.0.0', port=8080)
+

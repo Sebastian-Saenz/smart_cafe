@@ -1,0 +1,47 @@
+{% extends 'layouts/base.html' %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col">
+            <div id="chat-box" class="border rounded p-3 mb-3" style="height:300px; overflow-y:auto"></div>
+            <form id="chat-form" class="d-flex">
+                <input id="chat-input" class="form-control mr-2" placeholder="Escribe tu mensaje..." required>
+                <button class="btn btn-primary">Enviar</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+    // Fijar idAgente manualmente
+    const idAgente = 'Sebastian';
+    const chatBox = document.getElementById('chat-box');
+    const form = document.getElementById('chat-form');
+
+    form.addEventListener('submit', async e => {
+        e.preventDefault();
+        const input = document.getElementById('chat-input');
+        const msg = input.value;
+        appendMessage('Tú', msg);
+        form.reset();
+
+        // Llamada al backend
+        const resp = await fetch(
+            `/client/agent?idagente=${encodeURIComponent(idAgente)}&msg=${encodeURIComponent(msg)}`
+        );
+        const { reply } = await resp.json();
+        console.log({ reply });
+
+        appendMessage('Cafetería', reply);
+    });
+
+    function appendMessage(who, text) {
+        const p = document.createElement('p');
+        p.innerHTML = `<strong>${who}:</strong> ${text}`;
+        chatBox.appendChild(p);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+</script>
+{% endblock %}

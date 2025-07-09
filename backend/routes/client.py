@@ -1,7 +1,7 @@
 import os
 import csv
 from pathlib import Path
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, render_template
 from langchain.docstore.document import Document
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_elasticsearch import ElasticsearchStore
@@ -48,11 +48,11 @@ def client_agent():
     current_mtime = os.path.getmtime(config.CSV_STOCK_PATH)
 
     if last_mtime != current_mtime:
-        print("CSV fue actualizado...")
         if store.client.indices.exists(index="stock"):
             store.client.indices.delete(index="stock")
         store.add_documents(get_docs())
         store._last_mtime = current_mtime
+        print("CSV fue actualizado...")
 
     # 4. Preparar herramienta RAG
     retriever = store.as_retriever(search_kwargs={"k": 3})
@@ -121,7 +121,9 @@ def client_agent():
     agent_executor = create_react_agent(model, tolkit, checkpointer=checkpointer, prompt=prompt)
     config_agent = {"configurable": {"thread_id": id_agente}}
     try:
+        print("Enviando solicitud...")
         response = agent_executor.invoke({"messages": [HumanMessage(content=msg)]}, config=config_agent)
+        print("Solicitud recibida...")
     except PoolTimeout:
         pool.check()
         print("error")
@@ -129,3 +131,7 @@ def client_agent():
     reply = response['messages'][-1].content
     # return response['messages'][-1].content
     return jsonify({"reply": reply})
+
+@client_bp.route('/escribenos', methods=['GET'])
+def escribenos():
+    return render_template('escribenos.html')

@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Escríbenos{% endblock %}
+
+{% block content %}
+<!-- Header Start -->
+<div class="jumbotron jumbotron-fluid page-header" style="margin-bottom: 0px;">
+    <div class="container text-center">
+        <h1 class="text-white display-3 mt-lg-5">Escríbenos!</h1>
+    </div>
+</div>
+<!-- Header End -->
+
+
+<!-- Content start -->
+<div class="container-fluid px-0">
+    <div class="row bg-primary m-0">
+        <!-- Iquierda -->
+        <div class="col-md-3 px-0" style="min-height: 500px;">
+            <div class="h-100 d-flex flex-column align-items-center justify-content-center text-center p-5">
+                <div class="d-flex align-items-center justify-content-center bg-white rounded-circle mb-4"
+                    style="width: 100px; height: 100px; color: white;">
+                    <h3 class="font-weight-bold text-secondary mb-0">👩🏻‍🍳</h3>
+                </div>
+                <h3 class="font-weight-bold text-white mt-3 mb-4">Chatea con Nosotros!</h3>
+                <p class="text-white mb-4">Puedes solicitar tu orden directamente desde Aquí! Nuestro asistente
+                    se encargará de todo! c.</p>
+                <a href="" class="btn btn-secondary py-3 px-5 mt-2">Order Now</a>
+            </div>
+        </div>
+        <!-- Izquierda end -->
+
+        <!-- Derecha Start -->
+        <div class="col-md-9 px-0" style="background:white;">
+
+            <div class="d-flex flex-column py-3 px-3" style="height:500px;">
+
+                <div id="chat-box" class="flex-grow-1 p-4 rounded shadow-sm mb-3"
+                    style="background:#f7f9ff; overflow-y:auto;"></div>
+
+                <form id="chat-form" class="d-flex align-items-center gap-3" style="flex-shrink:0;">
+                    <input id="chat-input" class="form-control rounded-pill px-4 py-2" style="flex:1;"
+                        placeholder="Escribe tu mensaje..." required>
+                    <button class="btn btn-primary btn-sm rounded-pill px-3 py-2"
+                        style="background-color:#093d6a; border:none;">Enviar</button>
+                </form>
+            </div>
+
+        </div>
+
+        <!-- Derecha end -->
+
+    </div>
+</div>
+<!-- Content End -->
+
+{% endblock %}
+{% block scripts %}
+<script>
+    const idAgente = 'Sebastian';
+    const chatBox = document.getElementById('chat-box');
+    const form = document.getElementById('chat-form');
+
+    form.addEventListener('submit', async e => {
+        e.preventDefault();
+        const input = document.getElementById('chat-input');
+        const msg = input.value;
+        appendMessage('user', msg);
+        form.reset();
+
+        try {
+            const resp = await fetch(`/client/agent?idagente=${encodeURIComponent(idAgente)}&msg=${encodeURIComponent(msg)}`);
+            const { reply } = await resp.json();
+            appendMessage('bot', reply);
+        } catch (error) {
+            appendMessage('bot', 'Lo siento, hubo un error 😕');
+        }
+    });
+
+    function appendMessage(role, text) {
+        const p = document.createElement('p');
+        const div = document.createElement('div');
+        div.className = 'chat-msg ' + (role === 'user' ? 'chat-user' : 'chat-bot');
+        div.innerText = text;
+        p.appendChild(div);
+        chatBox.appendChild(p);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+</script>
+{% endblock %}

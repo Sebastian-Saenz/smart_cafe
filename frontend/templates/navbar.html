@@ -1,0 +1,27 @@
+<div class="container-fluid position-relative nav-bar p-0">
+    <div class="container-lg position-relative p-0 px-lg-3" style="z-index: 9;">
+        <nav class="navbar navbar-expand-lg bg-white navbar-light shadow p-lg-0">
+            <a href="{{ url_for('index') }}" class="navbar-brand d-block d-lg-none">
+                <h1 class="m-0 display-4 text-primary"><span class="text-secondary">E</span>SENCIA</h1>
+            </a>
+            <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-between" id="navbarCollapse">
+                <div class="navbar-nav ml-auto py-0">
+                    <a href="{{ url_for('index') }}" class="nav-item nav-link active">Inicio</a>
+                    <a href="#" class="nav-item nav-link">Menu</a>
+                    <a href="{{ url_for('client.escribenos') }}" class="nav-item nav-link">Escribenos!</a>
+                </div>
+                <a href="{{ url_for('index') }}" class="navbar-brand mx-5 d-none d-lg-block">
+                    <h1 class="m-0 display-4 text-primary"><span class="text-secondary">ESENCIA</span></h1>
+                </a>
+                <div class="navbar-nav mr-auto py-0">
+                    <a href="#" class="nav-item nav-link" style="color: white;">Service</a>
+                    <a href="#" class="nav-item nav-link" style="color: white;">Gallery</a>
+                    <a href="#" class="nav-item nav-link">Login</a> 
+                </div>
+            </div>
+        </nav>
+    </div>
+</div>

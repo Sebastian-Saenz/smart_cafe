@@ -1,0 +1,5 @@
+Extrae los productos y cantidades del siguiente mensaje y responde como una lista en JSON.
+Ejemplo de formato:
+[{{"name": "americano", "qty": 2}}, {{"name": "torta de chocolate", "qty": 1}}]
+
+Mensaje: {msg}

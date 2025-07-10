@@ -12,7 +12,7 @@ from psycopg_pool import PoolTimeout
 from config import Config
 from extensions import checkpointer
 from utils import get_prompt
-from services.tools_service import check_schedule, search_stock, get_order
+from models.product import StockRequest
 
 client_bp = Blueprint('client', __name__)
 config = Config()
@@ -66,18 +66,19 @@ def reindex_csv():
 #     print(answer)
 #     return answer
 
-# @tool("search_stock", args_schema=StockRequest, description="Busca stock de un listado de productos")
-# def search_stock(products: list[str]) -> str:
-#     reindex_csv()
-#     results = []
-#     print(f"===== Search Stock Tool =====")
-#     for name in products:
-#         print(f"Producto: {name}")
-#         docs = retriever.invoke(name)
-#         stock = docs[0].metadata.get("stock", 0) if docs else 0
-#         results.append({"name": name, "stock": stock})
-#     print(results)
-#     return results
+@tool("search_stock", args_schema=StockRequest, description="Busca stock de un listado de productos")
+def search_stock(products: list[str]) -> str:
+    """Consulta stock de multiples productos."""
+    reindex_csv()
+    results = []
+    print(f"===== Search Stock Tool =====")
+    for name in products:
+        print(f"Producto: {name}")
+        docs = retriever.invoke(name)
+        stock = docs[0].metadata.get("stock", 0) if docs else 0
+        results.append({"name": name, "stock": stock})
+    print(results)
+    return results
 
 @client_bp.route('/agent', methods=['GET'])
 def client_agent():
@@ -85,6 +86,7 @@ def client_agent():
     msg = request.args.get('msg', '')
 
     model = ChatOpenAI(model="gpt-4.1-2025-04-14")
+    # model = ChatOpenAI(model="gpt-4.1-mini-2025-04-14")
     prompt = ChatPromptTemplate.from_messages([
         ("system", get_prompt("virtual_assistent.txt")),
         ("human", "{messages}")
@@ -92,7 +94,7 @@ def client_agent():
 
     agent = create_react_agent(
         model,
-        tools=[check_schedule, get_order, search_stock],
+        tools=[search_stock],
         checkpointer=checkpointer,
         prompt=prompt
     )

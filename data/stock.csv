@@ -1,7 +1,17 @@
-id,name,description,price,stock
-1,Americano,Café negro largo,3.50,20
-2,Latte,Café con leche espumada,4.50,15
-3,Muffin Vainilla,Muffin suave con chispas de vainilla,2.75,30
-4,Cheesecake,Porción de cheesecake de fresa,5.00,10
-5,Chocolate Caliente,Bebida de chocolate espeso,3.00,12
-6,Torta de Chocolate, Postre dulce de chocolate cacao,13.00,3
+id,name,category,description,price,stock
+1,Cheesecake de Fresa,postre,"Porción cremosa de tarta de queso con coulis de fresa",5.50,12
+2,Torta de Chocolate,postre,"Delicioso bizcocho de cacao intenso con cobertura ganache",13.00,3
+3,Brownie de Chocolate,postre,"Brownie denso con trozos de chocolate semi-amargo",4.00,20
+4,Pie de Limón,postre,"Base crujiente con crema de limón y merengue dorado",4.75,8
+5,Empanada de Pollo,acompañamiento salado,"Masa hojaldrada rellena de pollo y verduras",3.25,25
+6,Empanada de Espinaca,acompañamiento salado,"Pastel salado de huevo, crema y espinacas frescas",4.50,10
+7,Pan de Ajo,acompañamiento salado,"Pan artesanal cubierto de mantequilla de ajo y especias",2.00,30
+8,Arepitas de Yuca,acompañamiento salado,"Mini arepas hechas con yuca y queso fresco",3.00,18
+9,Americano,bebida caliente,"Café negro largo preparado con granos 100% arábica",3.50,20
+10,Latte,bebida caliente,"Café expreso con leche vaporizada y fina capa de espuma",4.50,15
+11,Cappuccino,bebida caliente,"Espresso, leche espumada y cacao espolvoreado",4.75,10
+12,Chocolate Caliente,bebida caliente,"Bebida espesa de chocolate con crema batida",3.00,12
+13,Frappé de Vainilla,bebida fría,"Bebida fría de café, vainilla y hielos triturados",5.00,14
+14,Té Helado de Durazno,bebida fría,"Té negro infusionado con durazno y hielo",3.25,20
+15,Smoothie de Fresa,bebida fría,"Mezcla de fresas frescas, yogur y hielo",4.25,16
+16,Limonada con Hierbabuena,bebida fría,"Refrescante limonada natural con hojas de hierbabuena",3.00,22

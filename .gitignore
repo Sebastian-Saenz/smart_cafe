@@ -4,4 +4,4 @@ venv/
 __pycache__/
 *.py[cod]
 
-.pytest_cache/
+.pytest_cache//backend/client_secret.json
